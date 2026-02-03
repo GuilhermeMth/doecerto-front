@@ -6,22 +6,7 @@ import { FiSearch, FiMenu, FiX } from "react-icons/fi";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import DonateModal from "@/components/specific/DonateModal";
-import { PaginatedResponse } from "@/types/paginated-response";
-import { api } from "@/services/api";
-
-type Ong = {
-  id: number;
-  name: string;
-  img: string;
-  distance: string;
-};
-
-type OngApi = {
-  userId: number;
-  user: {
-    name: string;
-  };
-};
+import { getCatalogOngs, Ong } from "@/services/ongs.service";
 
 const PLACEHOLDER_IMAGES = [
   "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&w=600",
@@ -38,8 +23,6 @@ const TAKE = 8;
 
 export default function HomePage() {
   const router = useRouter();
-  const carouselRef = useRef<HTMLDivElement | null>(null);
-  const chipsRef = useRef<HTMLDivElement | null>(null);
 
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -48,42 +31,43 @@ export default function HomePage() {
 
   const [ongs, setOngs] = useState<Ong[]>([]);
   const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
-
-useEffect(() => {
-  async function loadOngs() {
-    try {
-      const res = await api<any>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
-      
-      const sections = res.data;
-      if (!sections || sections.length === 0) return;
-      const allOngsFromApi = sections.flatMap((section: any) => section.data);
-      const mapped: Ong[] = allOngsFromApi.map((ong: any, index: number) => ({
-        id: ong.userId,
-        name: ong.name,
-        img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
-        distance: "7.2 km",
-      }));
-
-      setOngs((prev) => {
-       
-        const combined = [...prev, ...mapped];
-        const uniqueMap = new Map();
+  // Busca ONGs usando o service
+  useEffect(() => {
+    async function loadOngs() {
+      setLoading(true);
+      try {
+        const newOngs = await getCatalogOngs(page * TAKE, TAKE);
         
-        combined.forEach(ong => {
-          uniqueMap.set(ong.id, ong);
+        // Adiciona imagens placeholder e dados padrão
+        const ongsWithDefaults = newOngs.map((ong, index) => ({
+          ...ong,
+          logo: ong.logo || PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
+          banner: ong.banner || PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
+          distance: ong.distance || "7.2 km",
+        }));
+
+        setOngs((prev) => {
+          const combined = [...prev, ...ongsWithDefaults];
+          
+          // Remove duplicatas por ID
+          const uniqueMap = new Map();
+          combined.forEach(ong => {
+            uniqueMap.set(ong.id, ong);
+          });
+          
+          return Array.from(uniqueMap.values());
         });
-
-        return Array.from(uniqueMap.values());
-      });
-    } catch (err) {
-      console.error("Erro ao buscar ONGs:", err);
+      } catch (err) {
+        console.error("Erro ao buscar ONGs:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }
 
-  loadOngs();
-}, [page]);
+    loadOngs();
+  }, [page]);
 
   const categories = [
     "Proteção Animal",
@@ -164,10 +148,11 @@ useEffect(() => {
               <button
                 key={i}
                 onClick={() => setSelectedCategory(isSelected ? null : c)}
-                className={`whitespace-nowrap px-4 py-2 rounded-full border text-base shadow-sm active:scale-95 transition ${isSelected
+                className={`whitespace-nowrap px-4 py-2 rounded-full border text-base shadow-sm active:scale-95 transition ${
+                  isSelected
                     ? "border-purple-700 bg-purple-100 text-purple-800"
                     : "border-gray-200 bg-white text-gray-700"
-                  }`}
+                }`}
               >
                 {c}
               </button>
@@ -191,7 +176,7 @@ useEffect(() => {
               className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
             >
               <div className="w-full h-[170px] bg-gray-200">
-                <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
+                <img src={ong.logo} alt={ong.name} className="w-full h-full object-cover" />
               </div>
 
               <div className="p-3">
@@ -219,48 +204,48 @@ useEffect(() => {
 
       {/* Lista */}
       <section className="mt-6 px-5 mb-10 space-y-4">
-
         <h2 className="text-xl font-semibold mb-4 text-gray-800">
           Mais próximas de você
         </h2>
 
-        <div className="space-y-4"></div>
-
-        {ongs.map((ong) => (
-          <div
-            key={`list-${ong.id}`}
-            onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
-            className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer"
-          >
-            <div className="w-28 h-28 rounded-xl overflow-hidden">
-              <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
-            </div>
-
-            <div className="flex-1">
-              <h3 className="font-semibold">{ong.name}</h3>
-              <p className="text-sm text-gray-500">{ong.distance}</p>
-            </div>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openDonateModal(ong.id);
-              }}
-              className="bg-[#6B21A8] text-white px-4 py-2 rounded-lg text-sm font-semibold"
+        <div className="space-y-4">
+          {ongs.map((ong) => (
+            <div
+              key={`list-${ong.id}`}
+              onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
+              className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer"
             >
-              Doar
-            </button>
-          </div>
-        ))}
+              <div className="w-28 h-28 rounded-xl overflow-hidden">
+                <img src={ong.logo} alt={ong.name} className="w-full h-full object-cover" />
+              </div>
+
+              <div className="flex-1">
+                <h3 className="font-semibold">{ong.name}</h3>
+                <p className="text-sm text-gray-500">{ong.distance}</p>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDonateModal(ong.id);
+                }}
+                className="bg-[#6B21A8] text-white px-4 py-2 rounded-lg text-sm font-semibold"
+              >
+                Doar
+              </button>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* LOAD MAIS (paginação invisível de layout) */}
+      {/* Botão Carregar Mais */}
       <div className="px-5 pb-10">
         <button
           onClick={() => setPage((p) => p + 1)}
-          className="w-full bg-white border rounded-xl py-3 shadow-sm text-purple-700 font-semibold"
+          disabled={loading}
+          className="w-full bg-white border rounded-xl py-3 shadow-sm text-purple-700 font-semibold hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          Carregar mais ONGs
+          {loading ? "Carregando..." : "Carregar mais ONGs"}
         </button>
       </div>
 

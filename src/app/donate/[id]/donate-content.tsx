@@ -2,17 +2,24 @@
 
 import { use, useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { getOngById, type Ong } from "@/services/ongs.service";
 
-export default function DonatePage({ params }: { params: Promise<{ id: string }> }) {
-  // ⛔ params é uma PROMISE → Next.js exige usar use()
+interface OngData {
+  pixKey?: string;
+  user?: {
+    name?: string;
+  };
+  [key: string]: unknown;
+}
+
+export default function DonateContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
-  const [ong, setOng] = useState<Ong | null>(null);
+  const [ong, setOng] = useState<OngData | null>(null);
   const [option, setOption] = useState<"items" | "money" | null>(null);
 
   useEffect(() => {
-    getOngById(id)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/ongs/${id}`)
+      .then((res) => res.json())
       .then((data) => {
         console.log("ONG RECEBIDA:", data);
         setOng(data);
@@ -86,6 +93,3 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
     </div>
   );
 }
-
-// Opcional: previne que IDs não listados sejam acessados
-export const dynamicParams = false;
