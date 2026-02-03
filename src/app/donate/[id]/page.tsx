@@ -2,20 +2,20 @@
 
 import { use, useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
+import { getOngById, type Ong } from "@/services/ongs.service";
 
 export default function DonatePage({ params }: { params: Promise<{ id: string }> }) {
   // ⛔ params é uma PROMISE → Next.js exige usar use()
   const { id } = use(params);
 
-  const [ong, setOng] = useState<any>(null);
+  const [ong, setOng] = useState<Ong | null>(null);
   const [option, setOption] = useState<"items" | "money" | null>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/ongs/${id}`)
-      .then((res) => res.json())
+    getOngById(id)
       .then((data) => {
         console.log("ONG RECEBIDA:", data);
-        setOng(data); // ← AGORA FUNCIONA (não usa data[0])
+        setOng(data);
       })
       .catch((err) => console.error("Erro ao buscar ONG:", err));
   }, [id]);

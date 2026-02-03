@@ -3,6 +3,10 @@ import { api } from "@/services/api";
 export interface Ong {
   id: number;
   name: string;
+  pixKey?: string;
+  user?: {
+    name: string;
+  };
 }
 
 export async function getVerifiedOngs(): Promise<Ong[]> {
@@ -10,4 +14,9 @@ export async function getVerifiedOngs(): Promise<Ong[]> {
 
   const all = res.data.flatMap(s => s.data);
   return Array.from(new Map(all.map((o: any) => [o.userId, { id: o.userId, name: o.name }])).values());
+}
+
+export async function getOngById(id: string): Promise<Ong> {
+  const res = await api<Ong>(`/ongs/${id}`);
+  return res.data;
 }
