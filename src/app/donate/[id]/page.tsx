@@ -12,7 +12,7 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
   const [option, setOption] = useState<"items" | "money" | null>(null);
 
   useEffect(() => {
-    getOngById(id)
+    getOngById(Number(id))
       .then((data) => {
         console.log("ONG RECEBIDA:", data);
         setOng(data);

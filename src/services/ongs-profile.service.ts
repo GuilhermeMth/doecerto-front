@@ -21,7 +21,7 @@ export const OngProfileService = {
    */
 async getMyProfile() {
   // Remova qualquer tentativa de passar parâmetros aqui
-  const { data } = await api<any>('/ongs/me/profile'); 
+  const { data } = await api<OngProfileData>('/ongs/me/profile'); 
   return data;
 },
 
@@ -30,9 +30,9 @@ async getMyProfile() {
    * Rota: GET /categories
    */
   async getCategories() {
-    const { data } = await api<any>('/categories?take=100');
+    const { data } = await api<{ data: Category[] } | Category[]>('/categories?take=100');
     // Ajusta o retorno baseado na estrutura comum do NestJS/Prisma (paginada ou array simples)
-    return data?.data || data || [];
+    return (Array.isArray(data) ? data : data?.data) || [];
   },
 
   /**

@@ -29,7 +29,7 @@ export default function OngPublicPage({ params }: { params: Promise<{ id: string
           setOng(data);
         } else {
           // Fallback para dados estáticos
-          const staticData = (staticOngs as any[]).find((o) => o.id === ongId);
+          const staticData = staticOngs.find((o) => o.id === ongId);
           if (staticData) {
             setOng({
               ...staticData,

@@ -42,8 +42,9 @@ export default function ForgotPasswordComponent() {
         router.push("/login");
       }, 4000);
 
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao conectar com o servidor");
+    } catch (err: Error | unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao conectar com o servidor";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

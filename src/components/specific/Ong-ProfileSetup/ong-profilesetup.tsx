@@ -15,7 +15,7 @@ export default function OngSetupProfile() {
 
   const [loading, setLoading] = useState(false);
   const [ongName, setOngName] = useState("Minha ONG");
-  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<{ id: number; name: string }[]>([]);
 
   const [bio, setBio] = useState("");
   const [phone, setPhone] = useState("");
@@ -64,11 +64,11 @@ export default function OngSetupProfile() {
           if (profile.bannerUrl) setBannerPreview(formatUrl(profile.bannerUrl));
 
           if (profile.categories) {
-            setSelectedCategoryIds(profile.categories.map((c: any) => c.id));
+            setSelectedCategoryIds(profile.categories.map((c: { id: number; name?: string }) => c.id));
           }
         }
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+      } catch (_error: Error | unknown) {
+        console.error("Erro ao carregar dados:", _error);
       }
     }
     loadInitialData();
@@ -109,7 +109,7 @@ export default function OngSetupProfile() {
         logoFile: logoFile || undefined,
       });
       router.push("/ong-dashboard");
-    } catch (error) {
+    } catch {
       alert("Houve um erro ao salvar seu perfil.");
     } finally {
       setLoading(false);

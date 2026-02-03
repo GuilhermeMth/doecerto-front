@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Camera, Maximize2, X, Check } from "lucide-react";
+import { Camera, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 
 interface ImageUploaderProps {

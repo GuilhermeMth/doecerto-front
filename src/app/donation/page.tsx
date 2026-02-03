@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Donation from "../../components/specific/Donation/donation";
 import { createDonation } from "@/services/donation.service";
 
-
-export default function DonationPage() {
+function DonationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -32,9 +31,10 @@ export default function DonationPage() {
 
       await createDonation(payload);
       setShowPopup(true);
-    } catch (error: any) {
-     
-      console.error("Erro na Doação:", error.message);
+    } catch (error: Error | unknown) {
+      if (error instanceof Error) {
+        console.error("Erro na Doação:", error.message);
+      }
       alert("Não foi possível enviar a doação. Verifique sua conexão ou login.");
     }
   };
@@ -70,5 +70,13 @@ export default function DonationPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DonationPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Carregando...</div>}>
+      <DonationContent />
+    </Suspense>
   );
 }

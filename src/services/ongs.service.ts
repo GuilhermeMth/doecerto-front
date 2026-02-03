@@ -21,10 +21,13 @@ export interface Ong {
 }
 
 export async function getVerifiedOngs(): Promise<Ong[]> {
-  const res = await api<any[]>("/catalog");
+  interface CatalogSection {
+    data: Array<{ userId: number; name: string }>;
+  }
+  const res = await api<CatalogSection[]>("/catalog");
 
   const all = res.data.flatMap(s => s.data);
-  return Array.from(new Map(all.map((o: any) => [o.userId, { id: o.userId, name: o.name }])).values());
+  return Array.from(new Map(all.map((o) => [o.userId, { id: o.userId, name: o.name }])).values());
 }
 
 const BANNER_PLACEHOLDER = "https://placehold.co/1200x400/F3F4F6/9CA3AF?text=DoeCerto";
@@ -33,7 +36,7 @@ const LOGO_PLACEHOLDER = "https://placehold.co/400x400/E5E7EB/9CA3AF?text=ONG";
 /**
  * Função de tratamento de imagem robusta
  */
-const getValidImage = (url?: string, isBanner = false) => {
+export const getValidImage = (url?: string, isBanner = false) => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
   if (!url || url === "null" || url.trim() === "") {
@@ -48,12 +51,23 @@ const getValidImage = (url?: string, isBanner = false) => {
 };
 
 export async function getCatalogOngs(offset = 0, limit = 100): Promise<Ong[]> {
+  interface CatalogItem {
+    userId: number;
+    name: string;
+    bio?: string;
+    avatarUrl?: string;
+    logoUrl?: string;
+    bannerUrl?: string;
+  }
+  interface CatalogSection {
+    data: CatalogItem[];
+  }
   try {
-    const res = await api<Array<{ data: any[] }>>(`/catalog?offset=${offset}&limit=${limit}`);
+    const res = await api<CatalogSection[]>(`/catalog?offset=${offset}&limit=${limit}`);
     const sections = res.data || [];
     const allOngs = sections.flatMap((section) => section.data || []);
     
-    return allOngs.map((item: any) => ({
+    return allOngs.map((item: CatalogItem) => ({
       id: item.userId,
       name: item.name || "ONG",
       description: item.bio,
@@ -63,14 +77,35 @@ export async function getCatalogOngs(offset = 0, limit = 100): Promise<Ong[]> {
       since: 2024,
       impactedPeople: 0
     }));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
 
 export async function getOngById(id: number): Promise<Ong | null> {
+  interface OngProfileResponse {
+    name?: string;
+    bio?: string;
+    description?: string;
+    contactNumber?: string;
+    phone?: string;
+    websiteUrl?: string;
+    instagram?: string;
+    address?: string;
+    avatarUrl?: string;
+    logoUrl?: string;
+    bannerUrl?: string;
+    mission?: string;
+    since?: number;
+    ong?: {
+      user?: { name: string };
+      avatarUrl?: string;
+      bannerUrl?: string;
+      numberOfRatings?: number;
+    };
+  }
   try {
-    const res = await api<any>(`/ongs/${id}/profile`);
+    const res = await api<OngProfileResponse>(`/ongs/${id}/profile`);
     const data = res.data;
     
     if (!data) return null;
@@ -98,8 +133,8 @@ export async function getOngById(id: number): Promise<Ong | null> {
       since: data.since || 2024,
       impactedPeople: data.ong?.numberOfRatings || 0,
     };
-  } catch (error) {
-    console.error(`Erro no perfil:`, error);
+  } catch (_error: Error | unknown) {
+    console.error(`Erro no perfil:`, _error);
     return null;
   }
 }

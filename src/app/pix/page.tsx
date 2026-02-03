@@ -11,7 +11,7 @@ import {
   FaCheckCircle,
   FaChevronLeft,
 } from "react-icons/fa";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
 const ONGS = [
   {
@@ -38,7 +38,7 @@ const ONGS = [
   },
 ];
 
-export default function PixPage() {
+function PixPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = Number(searchParams.get("id"));
@@ -284,5 +284,13 @@ export default function PixPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PixPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Carregando...</div>}>
+      <PixPageContent />
+    </Suspense>
   );
 }

@@ -10,7 +10,7 @@ interface LoginResponse {
 }
 
 export async function login(data: LoginDTO): Promise<void> {
-  const response = await api<LoginResponse>("/auth/login", {
+  await api<LoginResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
   });

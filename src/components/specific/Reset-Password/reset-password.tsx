@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -59,8 +59,9 @@ export default function ResetPasswordPage() {
         router.push("/login");
       }, 3000);
 
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao conectar com o servidor.");
+    } catch (err: Error | unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao conectar com o servidor.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -116,5 +117,13 @@ export default function ResetPasswordPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Carregando...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
