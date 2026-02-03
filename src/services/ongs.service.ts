@@ -5,8 +5,18 @@ export interface Ong {
   id: number;
   name: string;
   pixKey?: string;
+  description?: string;
+  logo?: string;
+  banner?: string;
+  mission?: string;
+  since?: number;
+  impactedPeople?: number;
+  phone?: string;
+  instagram?: string;
+  address?: string;
+  distance?: string;
   user?: {
-    name: string;
+  name: string;
   };
 }
 
@@ -15,23 +25,6 @@ export async function getVerifiedOngs(): Promise<Ong[]> {
 
   const all = res.data.flatMap(s => s.data);
   return Array.from(new Map(all.map((o: any) => [o.userId, { id: o.userId, name: o.name }])).values());
-}
-
-export async function getOngById(id: string): Promise<Ong> {
-  const res = await api<Ong>(`/ongs/${id}`);
-  return res.data;
-  banner: string;         
-  logo: string;           
-  description?: string;
-  phone?: string;
-  instagram?: string;
-  address?: string;
-  distance?: string;
-  years?: number;
-  donations?: number;
-  mission: string;        
-  since: number;          
-  impactedPeople: number; 
 }
 
 const BANNER_PLACEHOLDER = "https://placehold.co/1200x400/F3F4F6/9CA3AF?text=DoeCerto";
