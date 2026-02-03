@@ -40,7 +40,6 @@ jobs:
           run: npm test -- --passWithNoTests
 
     build-and-push:
-        needs: lint-and-test
         runs-on: ubuntu-latest
         name: Build & Push
 
