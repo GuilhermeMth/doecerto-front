@@ -3,7 +3,7 @@ name: Build and Push Frontend Docker Image
 on:
     push:
         branches:
-        - sitemas-distribuidos
+        - sistemas-distribuidos
         tags:
         - 'v*.*.*'
     workflow_dispatch:
@@ -40,6 +40,7 @@ jobs:
           run: npm test -- --passWithNoTests
 
     build-and-push:
+        needs: lint-and-test
         runs-on: ubuntu-latest
         name: Build & Push
 
