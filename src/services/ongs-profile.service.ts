@@ -6,10 +6,19 @@ export interface Category {
 }
 
 export interface OngProfileData {
+  name?: string;
   bio?: string;
   contactNumber?: string;
   address?: string;
   websiteUrl?: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  categories?: Category[];
+  ong?: {
+    user?: {
+      name?: string;
+    };
+  };
   categoryIds?: number[];
   logoFile?: File;
 }
